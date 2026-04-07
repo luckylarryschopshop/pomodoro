@@ -1,0 +1,5 @@
+services:
+  pomodoro:
+    build: .
+    ports:
+      - "3008:80"
