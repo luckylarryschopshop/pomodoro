@@ -1,0 +1,172 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pomodoro Timer</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --text: #e6edf3;
+      --accent: #f97316;
+      --border: #1e293b;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .timer {
+      font-size: 5rem;
+      font-weight: bold;
+    }
+    .progress-ring {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0%, var(--accent) 100%);
+      position: relative;
+    }
+    .progress-ring::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      background: var(--bg);
+      border-radius: 50%;
+    }
+    .session-counter {
+      font-size: 1.5rem;
+    }
+    .buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #ea580d;
+    }
+    @media (max-width: 400px) {
+      .timer {
+        font-size: 3rem;
+      }
+      .progress-ring {
+        width: 150px;
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="progress-ring" id="progress-ring"></div>
+    <div class="timer" id="timer">25:00</div>
+    <div class="session-counter" id="session-counter">Session 1</div>
+    <div class="buttons">
+      <button id="toggle-btn">Start</button>
+      <button id="reset-btn">Reset</button>
+    </div>
+  </div>
+  <script>
+    const timerEl = document.getElementById('timer');
+    const progressRing = document.getElementById('progress-ring');
+    const sessionCounter = document.getElementById('session-counter');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let totalSeconds = 25 * 60;
+    let timeLeft = totalSeconds;
+    let interval;
+    let isRunning = false;
+    let session = 1;
+    let workSessions = 0;
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const seconds = (timeLeft % 60).toString().padStart(2, '0');
+      timerEl.textContent = `${minutes}:${seconds}`;
+    }
+
+    function updateProgressRing() {
+      const progress = 1 - timeLeft / totalSeconds;
+      progressRing.style.background = `conic-gradient(var(--accent) ${progress * 100}%, var(--bg) 0%)`;
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      toggleBtn.textContent = 'Pause';
+      interval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        updateProgressRing();
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          isRunning = false;
+          toggleBtn.textContent = 'Start';
+          playBeep();
+          nextSession();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!isRunning) return;
+      clearInterval(interval);
+      isRunning = false;
+      toggleBtn.textContent = 'Start';
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      isRunning = false;
+      toggleBtn.textContent = 'Start';
+      timeLeft = totalSeconds;
+      updateTimerDisplay();
+      updateProgressRing();
+    }
+
+    function nextSession() {
+      workSessions++;
+      if (workSessions % 4 === 0) {
+        totalSeconds = 15 * 60;
+        session++;
+        sessionCounter.textContent = `Long Break ${Math.floor(session / 2)}`;
+      } else {
+        totalSeconds = 5 * 60;
+        sessionCounter.textContent = `Break ${Math.ceil(session / 2)}`;
+      }
+      timeLeft = totalSeconds;
+      updateTimerDisplay();
+      updateProgressRing();
+    }
+
+    function playBeep() {
+      const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAABJXIAAABXZiZ2wAAABXZmJmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAAABZmZmZmIAAA
